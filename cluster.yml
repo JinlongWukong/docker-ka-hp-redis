@@ -22,15 +22,23 @@
       command: docker load -i /tmp/redis-images.tar
       tags: image
 
+    - name: Check selinux existence
+      shell: which getenforce
+      register: selinux_check
+      failed_when: false
+      changed_when: false
+      tags: selinux
+
     - name: Set selinux policy
       selinux:
         policy: targeted
         state: "{{ selinux_state }}"
+      when: selinux_check.rc == 0
       tags: selinux
 
     - name: Check firewalld existence
       shell: which firewall-cmd
-      register: firewalld
+      register: firewalld_check
       failed_when: false
       changed_when: false
       tags: firewalld
@@ -40,7 +48,7 @@
         name: firewalld
         state: stopped
         enabled: no
-      when: firewalld.rc == 0
+      when: firewalld_check.rc == 0
       tags: firewalld
 
   tasks:
