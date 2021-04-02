@@ -1,0 +1,38 @@
+global_defs {
+   script_user root
+   enable_script_security
+}
+
+vrrp_script chk_haproxy {
+    script "/bin/bash -c 'if [[ $(netstat -nlp | grep 9443) ]]; then exit 0; else exit 1; fi'"  # haproxy check
+    interval 2
+    weight 11
+}
+
+vrrp_instance VI_1 {
+  interface {{ interface }}
+
+  state MASTER # node role by default, this is master node
+  virtual_router_id 51 # same id means same virtual group
+  priority 100 # weight
+  nopreempt # role can change to be master
+
+  unicast_peer {
+
+  }
+
+  virtual_ipaddress {
+    {{ vip }}  # vip
+  }
+
+  authentication {
+    auth_type PASS
+    auth_pass password
+  }
+
+  track_script {
+      chk_haproxy
+  }
+
+  #notify "/container/service/keepalived/assets/notify.sh"
+}

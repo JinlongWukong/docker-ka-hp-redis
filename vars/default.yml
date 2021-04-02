@@ -1,0 +1,34 @@
+---
+#Whether skip docker installation
+skip_docker_install: false
+
+#############################################
+# Keepalived default configuration
+#############################################
+
+#specify the network interface for the instance to run on
+#if commented, ansible will select interface by itself based on vip(same subnet)
+#interface: ens32
+
+# docker image name
+Keepalived_docker_image: osixia/keepalived:2.0.20
+
+# Selinux_state(enforcing,permissive,disabled)
+selinux_state: permissive
+
+#############################################
+# Haproxy default configuration
+#############################################
+
+# docker image name
+haproxy_docker_image: haproxy
+
+#############################################
+# Redis default configuration
+#############################################
+
+# redis password
+redis_pass: '123456'
+
+# docker image name
+redis_docker_image: redis

@@ -1,0 +1,7 @@
+bind 0.0.0.0
+requirepass "{{ redis_pass }}"
+masterauth "{{ redis_pass }}"
+{% if inventory_hostname not in groups.master %}
+replicaof {{  hostvars[groups['master'][0]]['ansible_ssh_host'] }} 6379
+{% endif %}
+

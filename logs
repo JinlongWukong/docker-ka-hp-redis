@@ -1,0 +1,9 @@
+
+# Make docker images tar file
+docker save -o redis-images.tar haproxy:latest redis:latest osixia/keepalived:2.0.20
+
+?
+keepalived, all master? nopromet
+health result
+firewalld
+

@@ -1,0 +1,21 @@
+frontend  redis-cluster-tcp
+    mode tcp
+    bind *:6380
+    default_backend redis-cluster-tcp
+
+backend redis-cluster-tcp
+    mode tcp
+    option tcplog
+    option tcp-check
+    #uncomment these lines if you have basic auth
+    tcp-check send AUTH\ {{ redis_pass }}\r\n
+    tcp-check expect string +OK
+    tcp-check send PING\r\n
+    tcp-check expect string +PONG
+    tcp-check send info\ replication\r\n
+    tcp-check expect string role:master
+    tcp-check send QUIT\r\n
+    tcp-check expect string +OK
+    {% for item in groups['all'] -%}
+    server {{ item }} {{ hostvars[item]['ansible_ssh_host'] }}:6379 maxconn 1024 check inter 1s
+    {% endfor %}
