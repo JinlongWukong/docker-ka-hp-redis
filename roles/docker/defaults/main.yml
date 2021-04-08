@@ -68,3 +68,14 @@ docker_log_opts: "--log-opt max-size=50m --log-opt max-file=5"
 ## namespace set up for docker will receive or propagate mounts
 ## and unmounts. Leave empty for system default
 # docker_mount_flags:
+
+_host_architecture_groups:
+  x86_64: amd64
+  aarch64: arm64
+  armv7l: arm
+host_architecture: >-
+  {%- if ansible_architecture in _host_architecture_groups -%}
+  {{ _host_architecture_groups[ansible_architecture] }}
+  {%- else -%}
+  {{ ansible_architecture }}
+  {%- endif -%}
