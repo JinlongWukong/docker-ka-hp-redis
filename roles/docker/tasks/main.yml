@@ -14,6 +14,7 @@
   with_items: "{{ docker_repo_key_info.repo_keys }}"
   environment:
     http_proxy: "{{ http_proxy | default('') }}"
+    https_proxy: "{{ https_proxy | default('') }}"
   when: ansible_pkg_mgr == 'apt'
 
 - name: ensure docker-ce repository is enabled
@@ -21,6 +22,9 @@
     repo: "{{ item }}"
     state: present
   with_items: "{{ docker_repo_info.repos }}"
+  environment:
+    http_proxy: "{{ http_proxy | default('') }}"
+    https_proxy: "{{ https_proxy | default('') }}"
   when: ansible_pkg_mgr == 'apt'
 
 - name: Configure docker repository on RedHat/CentOS
@@ -54,16 +58,12 @@
     - docker-ce
     - docker-ce-cli
 
-- name: ensure docker packages are installed
-  package:
+- name: ensure docker packages are installed on RedHat/CentOS
+  yum:
     name: "{{ docker_package_info.pkgs }}"
     state: "{{ docker_package_info.state | default('present') }}"
-  module_defaults:
-    apt:
-      update_cache: true
-    yum:
-      disablerepo: "{{ disablerepo | default('') }}"
-      enablerepo: "{{ docker_package_info.enablerepo | default(omit) }}"
+    disablerepo: "{{ disablerepo | default('') }}"
+    enablerepo: "{{ docker_package_info.enablerepo | default(omit) }}"
   register: docker_task_result
   until: docker_task_result is succeeded
   retries: 4
@@ -71,6 +71,24 @@
   notify: restart docker
   when:
     - docker_package_info.pkgs|length > 0
+    - ansible_distribution in ["CentOS","RedHat"]
+
+- name: ensure docker packages are installed
+  apt:
+    name: "{{ docker_package_info.pkgs }}"
+    state: "{{ docker_package_info.state | default('present') }}"
+    update_cache: true
+  register: docker_task_result
+  until: docker_task_result is succeeded
+  retries: 4
+  delay: "{{ retry_stagger | d(3) }}"
+  notify: restart docker
+  environment:
+    http_proxy: "{{ http_proxy | default('') }}"
+    https_proxy: "{{ https_proxy | default('') }}"
+  when:
+    - docker_package_info.pkgs|length > 0
+    - ansible_pkg_mgr == 'apt'
 
 # This is required to ensure any apt upgrade will not break kubernetes
 - name: Tell Debian hosts not to change the docker version with apt upgrade
